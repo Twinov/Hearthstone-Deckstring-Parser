@@ -8,6 +8,7 @@ from hearthstone.enums import get_localized_name
 
 
 for i, hs_deck in enumerate(sys.argv):
+    unknown = 0
     if not i == 0:
         locale = 'enUS'
         deck = Deck.from_deckstring(hs_deck)
@@ -15,7 +16,12 @@ for i, hs_deck in enumerate(sys.argv):
         english_db = db
 
         card_includes = deck.cards
-        cards = [(db[dbf_id], count) for dbf_id, count in card_includes]
+        cards = []
+        for dbf_id, count in card_includes:
+            try:
+                cards.append((db[dbf_id], count))
+            except KeyError:
+                unknown += 1
         cards.sort(key=lambda include: (include[0].cost, include[0].name))
         try:
             hero = db[deck.heroes[0]]
@@ -31,4 +37,6 @@ for i, hs_deck in enumerate(sys.argv):
 
         print(hero_name)
         print(card_list)
-        print('Deckstring: ', hs_deck, '\n')
+        if unknown:
+            print(unknown, 'unrecognized cards')
+        print('Deckstring: ', hs_deck)
